@@ -66,7 +66,7 @@ async def analyze_url(data: dict):
     typosquatting_score, typosquatting_risk = calculate_typosquatting_score(url)
 
     # Step 3: Use ML model to predict phishing probability
-    prediction = predict_url(url)
+    prediction, risk_score = predict_url(url)
     save_to_db(None, None, None, None, None, prediction, url)
 
-    return {"url": url, "prediction": prediction, "suspicion_score": suspicion_score, "typosquatting_score": typosquatting_score, "typosquatting_risk": typosquatting_risk}
+    return {"url": url, "prediction": prediction, "suspicion_score": suspicion_score, "typosquatting_score": typosquatting_score, "typosquatting_risk": typosquatting_risk, "risk_score": risk_score}

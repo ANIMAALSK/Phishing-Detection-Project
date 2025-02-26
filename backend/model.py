@@ -22,5 +22,8 @@ with open("ml_model/url_vectorizer.pkl", "rb") as file:
 
 def predict_url(url):
     url_tfidf = url_vectorizer.transform([url]) #to vectorize the url
-    prediction = url_model.predict(url_tfidf)[0]
-    return prediction 
+    prob = url_model.predict_proba(url_tfidf)[0]
+    phishing_probability = prob[1] * 100
+    risk_score = round(phishing_probability, 2)
+    prediction = "Phishing" if prob[1] > 0.5 else "Legitimate"
+    return prediction, risk_score
