@@ -66,7 +66,34 @@ async def analyze_url(data: dict):
     typosquatting_score, typosquatting_risk = calculate_typosquatting_score(url)
 
     # Step 3: Use ML model to predict phishing probability
-    prediction, risk_score = predict_url(url)
+    prediction, phishing_risk_score = predict_url(url)
     save_to_db(None, None, None, None, None, prediction, url)
 
-    return {"url": url, "prediction": prediction, "suspicion_score": suspicion_score, "typosquatting_score": typosquatting_score, "typosquatting_risk": typosquatting_risk, "risk_score": risk_score}
+    return {"url": url, "phishing": prediction, "phishing_risk_score": phishing_risk_score,"typosquatting_score": typosquatting_score, "typosquatting_risk": typosquatting_risk, "suspicion_score": suspicion_score}
+
+
+
+#     #{
+#   "url": "http://phishing-example.com",
+#   "phishing": true,
+#    "phising_risk_score": 10,
+#   "typosquatting_score": 85,
+#   "suspicion_score": 90,
+#   "domain_valid": false,
+#   "ssl_valid": false,
+#   "domain_age": 10,
+#   "hosting_country": "Russia",
+#   "whois_registered": false,
+#   "blacklisted": true
+# }
+
+#domain valid - make it go in the contract
+
+#ssl valid
+#domain age
+# hosting country
+# who is registered
+#blacklisted
+#no of redirects
+#page content analysis using beautiful soup
+#fake popups 

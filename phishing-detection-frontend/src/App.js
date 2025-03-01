@@ -100,8 +100,16 @@ function App() {
                   </td>
                 </tr>
                 <tr>
+                  <td>Phising Risk Percentage</td>
+                  <td>{result.phishing_risk_score}%</td>
+                </tr>
+                <tr>
                   <td>Typosquatting Score</td>
                   <td>{result.typosquatting_score}%</td>
+                </tr>
+                <tr>
+                  <td>Typosquatting Risk</td>
+                  <td>{result.typosquatting_risk}</td>
                 </tr>
                 <tr>
                   <td>Suspicion Score</td>

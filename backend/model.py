@@ -25,5 +25,5 @@ def predict_url(url):
     prob = url_model.predict_proba(url_tfidf)[0]
     phishing_probability = prob[1] * 100
     risk_score = round(phishing_probability, 2)
-    prediction = "Phishing" if prob[1] > 0.5 else "Legitimate"
+    prediction = True if prob[1] > 0.5 else False #True means phishing , False means Legitimate
     return prediction, risk_score
