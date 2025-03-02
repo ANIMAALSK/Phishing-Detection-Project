@@ -31,22 +31,6 @@ async def analyze_email(data: dict):
 
     return {"prediction": prediction}
 
-# @app.post("/analyze-url/")
-# async def analyze_url(data: dict):
-#     url = data.get("url")
-#     if not url:
-#         raise HTTPException(status_code=400, detail="URL missing")
-    
-#     # Call a function to Check if the domain exists (WHOIS/DNS resolution) and store the result
-#     # determine if url is  using its features (length, special characters, subdomains, etc.).
-#     # 3. Use ML to predict phishing risk (but show a probability score instead of a strict yes/no). call predict_url here
-#     # 4. Cross-check with real-time sources (Google Safe Browsing, VirusTotal, etc.).
-
-#     prediction = predict_url(url)
-#     save_to_db(None, None, None, None, None, prediction, url)  # Adjust if needed
-
-#     return {"url": url, "prediction": prediction}
-
 @app.post("/analyze-url/")
 async def analyze_url(data: dict):
     url = data.get("url")
@@ -58,13 +42,13 @@ async def analyze_url(data: dict):
     domain_valid = domain_exists(parsed_domain)
 
     if not domain_valid:
-        return {"url": url, "prediction": "Domain does not exist"}
+        return {"url": url, "phishing": True, "domain_valid": domain_valid}
 
-    # Step 2: Check if full URL is accessible
-    if not url_exists(url):
-        return {"url": url, "prediction": "URL is not accessible"}
+    url_valid = url_exists(url)
+    if not url_valid:
+        return {"url": url, "phishing": True, "domain_valid": url_valid}
     
-    suspicion_score = calculate_suspicion_score(url)
+    suspicion_score = calculate_suspicion_score(url) #based on url features
     typosquatting_score, typosquatting_risk = calculate_typosquatting_score(url)
 
     # Step 3: Use ML model to predict phishing probability
@@ -92,7 +76,6 @@ async def analyze_url(data: dict):
             "hosting_country": hosting_country,
             "whois_registered": is_whois_registered,
             "no_of_redirects": no_of_redirects,
-
         }
 
 

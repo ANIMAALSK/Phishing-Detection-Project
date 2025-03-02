@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 import ssl
 from datetime import datetime
 import whois
-import geoip2.database
 
 # List of suspicious words commonly used in phishing URLs
 SUSPICIOUS_KEYWORDS = {"secure", "login", "bank", "update", "verify", "account", "password", "free", "offer", "confirm"}

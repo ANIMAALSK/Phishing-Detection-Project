@@ -11,6 +11,8 @@ df = df[['url', 'type']]
 print("Dataset Sample:")
 print(df.head())
 
+df = df.dropna()
+
 X = df['url']
 y = df['type']
 
