@@ -6,6 +6,10 @@ from fuzzywuzzy import fuzz
 import socket
 import requests
 from urllib.parse import urlparse
+import ssl
+from datetime import datetime
+import whois
+import geoip2.database
 
 # List of suspicious words commonly used in phishing URLs
 SUSPICIOUS_KEYWORDS = {"secure", "login", "bank", "update", "verify", "account", "password", "free", "offer", "confirm"}
@@ -127,3 +131,94 @@ def url_exists(url):
 
     except requests.RequestException:
         return False  # Request failed (timeout, connection error, etc.)
+
+def get_ssl_details(url):
+    """Fetch SSL certificate details for a given domain."""
+    parsed_url = urlparse(url)
+
+    if parsed_url.scheme != "https":
+        return {"valid": None, "error": "Not an HTTPS URL"}  # Handle non-HTTPS cases
+
+    domain = parsed_url.netloc  # Extract domain
+
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection((domain, 443), timeout=5) as sock:
+            with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                cert = ssock.getpeercert()
+                
+                if not cert:
+                    return {"valid": False, "error": "No SSL certificate found"}
+
+                # Extract certificate details
+                expiry_date = datetime.strptime(cert["notAfter"], "%b %d %H:%M:%S %Y %Z")
+                return {
+                    "valid": expiry_date > datetime.utcnow(),
+                    "issuer": dict(x[0] for x in cert["issuer"]),
+                    "subject": dict(x[0] for x in cert["subject"]),
+                    "valid_from": cert["notBefore"],
+                    "valid_to": cert["notAfter"],
+                    "serial_number": cert.get("serialNumber"),
+                    "algorithm": cert.get("signatureAlgorithm"),
+                }
+
+    except (ssl.SSLError, socket.error) as e:
+        return {"valid": False, "error": str(e)}
+
+def get_domain_age(url):
+    """Fetch the domain's registration age in days and check WHOIS registration."""
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+    try:
+        domain_info = whois.whois(domain)
+
+        # Check if the domain is registered
+        if not domain_info.creation_date:
+            return {"registered": False, "error": "Domain not found in WHOIS"}
+
+        # Extract creation date (it can be a list)
+        creation_date = domain_info.creation_date
+        if isinstance(creation_date, list):
+            creation_date = creation_date[0]  # Take the earliest creation date
+
+        # Calculate age in days
+        age_days = (datetime.utcnow() - creation_date).days
+
+        return True, age_days, ""
+
+    except whois.UnknownTld:
+        return False, None, "Unknown top-level domain (TLD)"
+
+    except whois.WhoisCommandFailed:
+        return False, None, "WHOIS query failed"
+    
+    except whois.WhoisPrivateRegistry:
+        return False, None, "Domain is privately registered"
+
+    except Exception as e:
+        return False, None, str(e)
+
+
+def get_hosting_country(url):
+    """Fetch the country of a domain using WHOIS lookup."""
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc
+
+    try:
+        domain_info = whois.whois(domain)
+        country = domain_info.get("country")
+        return country, ""
+
+    except Exception as e:
+        return None, str(e)
+        
+def count_redirects(url):
+    """Check the number of redirects for a given URL."""
+    try:
+        response = requests.get(url, allow_redirects=True)  # Follow redirects
+        num_redirects = len(response.history)  # Count redirect responses
+
+        return num_redirects
+
+    except requests.RequestException as e:
+        return None

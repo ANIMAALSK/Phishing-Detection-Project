@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from backend.model import predict_email, predict_url # Ensure these functions exist
 from backend.database import save_to_db  # Ensure this function exists
-from backend.utils import calculate_suspicion_score, calculate_typosquatting_score, domain_exists, url_exists
+from backend.utils import calculate_suspicion_score, calculate_typosquatting_score, domain_exists, url_exists, get_ssl_details, get_domain_age, get_hosting_country, count_redirects
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -55,7 +55,9 @@ async def analyze_url(data: dict):
     
     # Step 1: Check if domain exists
     parsed_domain = url.split("//")[-1].split("/")[0]  # Extract domain
-    if not domain_exists(parsed_domain):
+    domain_valid = domain_exists(parsed_domain)
+
+    if not domain_valid:
         return {"url": url, "prediction": "Domain does not exist"}
 
     # Step 2: Check if full URL is accessible
@@ -69,7 +71,29 @@ async def analyze_url(data: dict):
     prediction, phishing_risk_score = predict_url(url)
     save_to_db(None, None, None, None, None, prediction, url)
 
-    return {"url": url, "phishing": prediction, "phishing_risk_score": phishing_risk_score,"typosquatting_score": typosquatting_score, "typosquatting_risk": typosquatting_risk, "suspicion_score": suspicion_score}
+    ssl_info = get_ssl_details(url)
+
+    is_whois_registered, domain_age, err = get_domain_age(url)
+
+    hosting_country, err_hosting_country = get_hosting_country(url)
+
+    no_of_redirects = count_redirects(url)
+
+    return {
+            "url": url, 
+            "phishing": prediction, 
+            "phishing_risk_score": phishing_risk_score,
+            "typosquatting_score": typosquatting_score, 
+            "typosquatting_risk": typosquatting_risk, 
+            "suspicion_score": suspicion_score,
+            "domain_valid": domain_valid,
+            "ssl_valid": ssl_info,
+            "domain_age": domain_age,
+            "hosting_country": hosting_country,
+            "whois_registered": is_whois_registered,
+            "no_of_redirects": no_of_redirects,
+
+        }
 
 
 
@@ -83,17 +107,9 @@ async def analyze_url(data: dict):
 #   "ssl_valid": false,
 #   "domain_age": 10,
 #   "hosting_country": "Russia",
-#   "whois_registered": false,
-#   "blacklisted": true
+#   "whois_registered": false
 # }
 
-#domain valid - make it go in the contract
-
-#ssl valid
-#domain age
-# hosting country
-# who is registered
-#blacklisted
-#no of redirects
+#no of redirects - Done
 #page content analysis using beautiful soup
 #fake popups 
