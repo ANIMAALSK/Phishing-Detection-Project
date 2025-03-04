@@ -1,16 +1,18 @@
 import pickle
 from transformers import pipeline
 
-# Load pre-trained models
-with open("ml_model/model.pkl", "rb") as file:
+with open("ml_model/email_model.pkl", "rb") as file:
     model = pickle.load(file)
 
-nlp_pipeline = pipeline("text-classification", model="bert-base-uncased")
+with open("ml_model/email_vectorizer.pkl", "rb") as file:
+    vectorizer = pickle.load(file)
 
-def predict_email(email_text):
-    result = nlp_pipeline(email_text)
-    print(result)
-    return "Phishing" if result[0]['label'] == 'LABEL_1' else "Legitimate" #1- phising , 0-Legitimate
+# Function to predict an email
+def predict_email(subject, sender_email, email_text):
+    combined_text = subject + " " + sender_email + " " + email_text  # Combine all fields
+    email_features = vectorizer.transform([combined_text])
+    prediction = model.predict(email_features)
+    return "Phishing" if prediction[0] == 1 else "Legitimate"
 
 #Load the Model 
 with open("ml_model/url_model.pkl", "rb") as file:

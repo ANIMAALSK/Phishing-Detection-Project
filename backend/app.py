@@ -21,12 +21,14 @@ def home():
 
 @app.post("/analyze-email/")
 async def analyze_email(data: dict):
+    subject = data.get("subject")
+    sender = data.get("sender_email")
     email_text = data.get("email_text")
 
     if not email_text:  # Only body is strictly required
         raise HTTPException(status_code=400, detail="Body is required")
 
-    prediction = predict_email(email_text)
+    prediction = predict_email(subject, sender, email_text)
     save_to_db(None, None, None, None, None,prediction, email_text)
 
     return {"prediction": prediction}
