@@ -6,3 +6,4 @@ backend/.git
 .DS_store
 .vscode
 README.md
+ml_model/email_dataset.csv
