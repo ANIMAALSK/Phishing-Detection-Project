@@ -31,7 +31,7 @@ async def analyze_email(data: dict):
     prediction = predict_email(subject, sender, email_text)
     save_to_db(None, None, None, None, None,prediction, email_text)
 
-    return {"prediction": prediction}
+    return {"phishing": prediction}
 
 @app.post("/analyze-url/")
 async def analyze_url(data: dict):

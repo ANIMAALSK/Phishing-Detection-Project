@@ -4,6 +4,8 @@ import { FaEnvelope, FaLink, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamat
 
 function App() {
   const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [sender, setSender] = useState("");
   const [url, setUrl] = useState("");
   const [result, setResult] = useState(null);
   const [activeTab, setActiveTab] = useState("email");
@@ -12,7 +14,7 @@ function App() {
   const analyzeEmail = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/analyze-email/", { email_text: email });
+      const response = await axios.post("http://localhost:8000/analyze-email/", { sender_email:sender,subject: subject, email_text: email });
       setResult(response.data);
     } catch (error) {
       console.error("Error analyzing email:", error);
@@ -54,6 +56,14 @@ function App() {
         <h2>Phishing Detection System</h2>
         {activeTab === "email" && (
           <div className="input-section">
+             <input
+              placeholder="Enter Sender"
+              onChange={(e) => setSender(e.target.value)}
+            />
+            <input
+              placeholder="Enter Subject"
+              onChange={(e) => setSubject(e.target.value)}
+            />
             <textarea
               placeholder="Enter Email Content"
               onChange={(e) => setEmail(e.target.value)}
