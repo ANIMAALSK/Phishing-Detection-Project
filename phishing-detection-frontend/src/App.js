@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { FaEnvelope, FaLink, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from "react-icons/fa";
+import { FaEnvelope, FaLink, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaShieldAlt, FaLock, FaInfoCircle } from "react-icons/fa";
 
 function App() {
   const [email, setEmail] = useState("");
@@ -10,14 +10,21 @@ function App() {
   const [result, setResult] = useState(null);
   const [activeTab, setActiveTab] = useState("email");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const analyzeEmail = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await axios.post("http://localhost:8000/analyze-email/", { sender_email:sender,subject: subject, email_text: email });
+      const response = await axios.post("http://localhost:8000/analyze-email/", { 
+        sender_email: sender,
+        subject: subject, 
+        email_text: email 
+      });
       setResult(response.data);
     } catch (error) {
       console.error("Error analyzing email:", error);
+      setError("Failed to analyze email. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -25,27 +32,58 @@ function App() {
 
   const analyzeUrl = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await axios.post("http://localhost:8000/analyze-url/", { url });
       setResult(response.data);
     } catch (error) {
       console.error("Error analyzing URL:", error);
+      setError("Failed to analyze URL. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const getRiskLevelClass = (score) => {
+    if (score >= 80) return "critical-risk";
+    if (score >= 60) return "high-risk";
+    if (score >= 40) return "medium-risk";
+    if (score >= 20) return "low-risk";
+    return "safe";
+  };
+
+  const getRiskLevelText = (score) => {
+    if (score >= 80) return "Critical Risk";
+    if (score >= 60) return "High Risk";
+    if (score >= 40) return "Medium Risk";
+    if (score >= 20) return "Low Risk";
+    return "Safe";
+  };
+
   return (
     <div className="app-container">
+      <header className="app-header">
+        <div className="logo">
+          <FaShieldAlt size={28} />
+          <h1>Phishing Detection System</h1>
+        </div>
+      </header>
+
       <nav className="nav-menu">
         <button
-          onClick={() => setActiveTab("email")}
+          onClick={() => {
+            setActiveTab("email");
+            setResult(null);
+          }}
           className={activeTab === "email" ? "active" : ""}
         >
           <FaEnvelope /> Email Analysis
         </button>
         <button
-          onClick={() => setActiveTab("url")}
+          onClick={() => {
+            setActiveTab("url");
+            setResult(null);
+          }}
           className={activeTab === "url" ? "active" : ""}
         >
           <FaLink /> URL Analysis
@@ -53,253 +91,596 @@ function App() {
       </nav>
 
       <div className="content">
-        <h2>Phishing Detection System</h2>
-        {activeTab === "email" && (
-          <div className="input-section">
-             <input
-              placeholder="Enter Sender"
-              onChange={(e) => setSender(e.target.value)}
-            />
-            <input
-              placeholder="Enter Subject"
-              onChange={(e) => setSubject(e.target.value)}
-            />
-            <textarea
-              placeholder="Enter Email Content"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button onClick={analyzeEmail} disabled={loading}>
-              {loading ? <FaSpinner className="spinner" /> : "Analyze Email"}
-            </button>
+        {activeTab === "email" ? (
+          <div className="input-card">
+            <div className="card-header">
+              <FaEnvelope />
+              <h2>Email Analysis</h2>
+            </div>
+            <div className="card-body">
+              <div className="input-group">
+                <label htmlFor="sender">Sender Email</label>
+                <input
+                  id="sender"
+                  type="email"
+                  placeholder="e.g. sender@example.com"
+                  value={sender}
+                  onChange={(e) => setSender(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="subject">Email Subject</label>
+                <input
+                  id="subject"
+                  type="text"
+                  placeholder="e.g. Urgent: Your Account Needs Verification"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="email-content">Email Content</label>
+                <textarea
+                  id="email-content"
+                  placeholder="Paste the email content here..."
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <button 
+                className="analyze-btn" 
+                onClick={analyzeEmail} 
+                disabled={loading || !sender || !subject || !email}
+              >
+                {loading ? <><FaSpinner className="spinner" /> Analyzing...</> : "Analyze Email"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="input-card">
+            <div className="card-header">
+              <FaLink />
+              <h2>URL Analysis</h2>
+            </div>
+            <div className="card-body">
+              <div className="input-group">
+                <label htmlFor="url">URL to Analyze</label>
+                <input
+                  id="url"
+                  type="text"
+                  placeholder="e.g. https://example.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
+              </div>
+              <button 
+                className="analyze-btn" 
+                onClick={analyzeUrl} 
+                disabled={loading || !url}
+              >
+                {loading ? <><FaSpinner className="spinner" /> Analyzing...</> : "Analyze URL"}
+              </button>
+            </div>
           </div>
         )}
-        {activeTab === "url" && (
-          <div className="input-section">
-            <input
-              type="text"
-              placeholder="Enter URL"
-              onChange={(e) => setUrl(e.target.value)}
-            />
-            <button onClick={analyzeUrl} disabled={loading}>
-              {loading ? <FaSpinner className="spinner" /> : "Analyze URL"}
-            </button>
+
+        {error && (
+          <div className="error-message">
+            <FaExclamationTriangle /> {error}
           </div>
         )}
 
         {result && (
           <div className="report-container">
-            <h3>Analysis Report</h3>
-            <table>
-              <tbody>
-                <tr>
-                  <td>URL</td>
-                  <td>{result.url}</td>
-                </tr>
-                <tr>
-                  <td>Phishing Prediction</td>
-                  <td className={result.phishing ? "high-risk" : "low-risk"}>
-                    {result.phishing ? (
-                    <>
-                      <FaExclamationTriangle /> High Risk
-                    </>
-                    ) : (
-                    <>
-                      <FaCheckCircle /> Safe
-                    </>
-                    )}
-                  </td>
-                </tr>
-                <tr>
-                  <td>Phising Risk Percentage</td>
-                  <td>{result.phishing_risk_score}%</td>
-                </tr>
-                <tr>
-                  <td>Typosquatting Score</td>
-                  <td>{result.typosquatting_score}%</td>
-                </tr>
-                <tr>
-                  <td>Typosquatting Risk</td>
-                  <td>{result.typosquatting_risk}</td>
-                </tr>
-                <tr>
-                  <td>Suspicion Score</td>
-                  <td>{result.suspicion_score}%</td>
-                </tr>
-                <tr>
-                  <td>Domain Valid</td>
-                  <td>
+            <div className="report-header">
+              <FaInfoCircle size={24} />
+              <h2>Analysis Report</h2>
+            </div>
+            
+            {result.phishing !== undefined && (
+              <div className={`risk-indicator ${result.phishing ? "high-risk" : "safe"}`}>
+                {result.phishing ? (
+                  <>
+                    <FaExclamationTriangle size={28} /> 
+                    <div>
+                      <h3>High Risk Detected</h3>
+                      <p>This content shows signs of phishing activity.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <FaCheckCircle size={28} />
+                    <div>
+                      <h3>Low Risk Detected</h3>
+                      <p>No obvious phishing indicators found.</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            
+            <div className="report-grid">
+              {result.url && (
+                <div className="report-item">
+                  <span className="item-label">URL</span>
+                  <span className="item-value url-value">{result.url}</span>
+                </div>
+              )}
+              
+              {result.phishing_risk_score !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Phishing Risk Score</span>
+                  <div className="progress-container">
+                    <div 
+                      className={`progress-bar ${getRiskLevelClass(result.phishing_risk_score)}`}
+                      style={{ width: `${result.phishing_risk_score}%` }}
+                    ></div>
+                    <span className="progress-text">{result.phishing_risk_score}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {result.typosquatting_score !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Typosquatting Score</span>
+                  <div className="progress-container">
+                    <div 
+                      className={`progress-bar ${getRiskLevelClass(result.typosquatting_score)}`}
+                      style={{ width: `${result.typosquatting_score}%` }}
+                    ></div>
+                    <span className="progress-text">{result.typosquatting_score}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {result.typosquatting_risk && (
+                <div className="report-item">
+                  <span className="item-label">Typosquatting Risk</span>
+                  <span className="item-value">{result.typosquatting_risk}</span>
+                </div>
+              )}
+              
+              {result.suspicion_score !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Suspicion Score</span>
+                  <div className="progress-container">
+                    <div 
+                      className={`progress-bar ${getRiskLevelClass(result.suspicion_score)}`}
+                      style={{ width: `${result.suspicion_score}%` }}
+                    ></div>
+                    <span className="progress-text">{result.suspicion_score}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {result.domain_valid !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Domain Valid</span>
+                  <span className={`item-value ${result.domain_valid ? "valid" : "invalid"}`}>
                     {result.domain_valid ? (
-                    <>
-                      <FaCheckCircle /> Yes
-                    </>
+                      <><FaCheckCircle /> Valid</>
                     ) : (
-                      <>
-                      <FaTimesCircle /> No
-                      </>
+                      <><FaTimesCircle /> Invalid</>
                     )}
-                  </td>
-                </tr>
-                <tr>
-                  <td>SSL Certificate</td>
-                  <td>
+                  </span>
+                </div>
+              )}
+              
+              {result.ssl_valid !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">SSL Certificate</span>
+                  <span className={`item-value ${result.ssl_valid ? "valid" : "invalid"}`}>
                     {result.ssl_valid ? (
-                    <>
-                      <FaCheckCircle /> Valid
-                    </>
+                      <><FaLock /> Valid</>
                     ) : (
-                    <>
-                      <FaTimesCircle /> Invalid
-                    </>
+                      <><FaTimesCircle /> Invalid</>
                     )}
-                  </td>
-                </tr>
-                <tr>
-                  <td>Domain Age</td>
-                  <td>{result.domain_age} days</td>
-                </tr>
-                <tr>
-                  <td>Hosting Country</td>
-                  <td>{result.hosting_country}</td>
-                </tr>
-                <tr>
-                  <td>WHOIS Registered</td>
-                  <td>
+                  </span>
+                </div>
+              )}
+              
+              {result.domain_age !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Domain Age</span>
+                  <span className="item-value">
+                    {result.domain_age} days
+                    {result.domain_age < 30 && (
+                      <span className="warning-tag">New Domain</span>
+                    )}
+                  </span>
+                </div>
+              )}
+              
+              {result.hosting_country && (
+                <div className="report-item">
+                  <span className="item-label">Hosting Country</span>
+                  <span className="item-value">{result.hosting_country}</span>
+                </div>
+              )}
+              
+              {result.whois_registered !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">WHOIS Registered</span>
+                  <span className={`item-value ${result.whois_registered ? "valid" : "invalid"}`}>
                     {result.whois_registered ? (
-                    <>
-                      <FaCheckCircle /> Yes
-                    </>
-                  ) : (
-                    <>
-                      <FaTimesCircle /> No
-                    </>
-                  )}
-                  </td>
-                </tr>
-                <tr>
-                  <td>Blacklisted</td>
-                  <td>
-                    {result.blacklisted ? (
-                      <>
-                        <FaTimesCircle /> Yes ) 
-                      </>
+                      <><FaCheckCircle /> Yes</>
                     ) : (
-                      <>
-                      <FaCheckCircle /> No 
-                      </>
-                    )} 
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      <><FaTimesCircle /> No</>
+                    )}
+                  </span>
+                </div>
+              )}
+              
+              {result.blacklisted !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Blacklisted</span>
+                  <span className={`item-value ${result.blacklisted ? "invalid" : "valid"}`}>
+                    {result.blacklisted ? (
+                      <><FaTimesCircle /> Yes</>
+                    ) : (
+                      <><FaCheckCircle /> No</>
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
 
+      <footer className="app-footer">
+        <p>&copy; {new Date().getFullYear()} Phishing Detection System</p>
+      </footer>
+
       <style jsx>{`
         .app-container {
-          font-family: "Segoe UI", Arial, sans-serif;
-          max-width: 900px;
-          margin: auto;
-          padding: 20px;
-          background-color: #f5f5f5;
-          color: #333;
-          border-radius: 10px;
-          box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+          max-width: 1200px;
+          margin: 0 auto;
+          background-color: #f8fafc;
+          color: #334155;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+          overflow: hidden;
         }
+        
+        .app-header {
+          background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+          padding: 20px;
+          text-align: center;
+          color: white;
+        }
+        
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+        }
+        
+        .logo h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 700;
+        }
+        
         .nav-menu {
           display: flex;
-          justify-content: center;
-          gap: 10px;
-          margin-bottom: 20px;
+          background-color: #ffffff;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 0 16px;
         }
+        
         .nav-menu button {
-          padding: 10px 15px;
+          padding: 16px 24px;
+          background: transparent;
           border: none;
-          border-radius: 5px;
+          border-bottom: 3px solid transparent;
           cursor: pointer;
-          background: #007bff;
-          color: white;
           font-size: 16px;
+          font-weight: 600;
+          color: #64748b;
           display: flex;
           align-items: center;
           gap: 8px;
+          transition: all 0.2s ease;
         }
-        .nav-menu .active {
-          background: #0056b3;
+        
+        .nav-menu button:hover {
+          color: #3b82f6;
         }
+        
+        .nav-menu button.active {
+          color: #3b82f6;
+          border-bottom: 3px solid #3b82f6;
+        }
+        
         .content {
-          text-align: center;
+          padding: 24px;
         }
-        .input-section {
+        
+        .input-card {
+          background-color: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          overflow: hidden;
+          margin-bottom: 24px;
+        }
+        
+        .card-header {
+          background-color: #f1f5f9;
+          padding: 16px 24px;
+          border-bottom: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .card-header h2 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+        
+        .card-body {
+          padding: 24px;
+        }
+        
+        .input-group {
           margin-bottom: 20px;
         }
-        .input-section input,
-        .input-section textarea {
-          width: 60%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          background-color: white;
-          color: #333;
-          font-size: 14px;
+        
+        .input-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 500;
+          color: #475569;
         }
-        .input-section textarea {
-          height: 120px;
+        
+        .input-group input,
+        .input-group textarea {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 16px;
+          color: #334155;
+          background-color: #ffffff;
+          transition: border-color 0.2s ease;
         }
-        .input-section button {
-          padding: 10px 15px;
-          background: #007bff;
-          border: none;
-          color: white;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
+        
+        .input-group input:focus,
+        .input-group textarea:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .input-group textarea {
+          height: 150px;
+          resize: vertical;
+        }
+        
+        .analyze-btn {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          margin: 10px auto;
+          background-color: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 12px 24px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          width: 100%;
+          margin-top: 8px;
         }
-        .input-section button:disabled {
-          background: #ccc;
+        
+        .analyze-btn:hover {
+          background-color: #2563eb;
+        }
+        
+        .analyze-btn:disabled {
+          background-color: #cbd5e1;
           cursor: not-allowed;
         }
+        
         .spinner {
           animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
+        
+        .error-message {
+          background-color: #fee2e2;
+          color: #b91c1c;
+          padding: 12px 16px;
+          border-radius: 8px;
+          margin-bottom: 24px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
         .report-container {
-          margin-top: 20px;
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+          background-color: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          overflow: hidden;
+          margin-top: 24px;
         }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 10px;
+        
+        .report-header {
+          background-color: #f8fafc;
+          padding: 16px 24px;
+          border-bottom: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
-        table td {
-          padding: 12px;
-          border-bottom: 1px solid #ddd;
-          text-align: left;
+        
+        .report-header h2 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
         }
-        table td:first-child {
-          font-weight: bold;
-          width: 40%;
+        
+        .risk-indicator {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px 24px;
+          border-bottom: 1px solid #e2e8f0;
         }
-        .high-risk {
-          color: #ff4c4c;
+        
+        .risk-indicator h3 {
+          margin: 0 0 4px 0;
+          font-size: 16px;
+          font-weight: 600;
         }
-        .low-risk {
-          color: #4caf50;
+        
+        .risk-indicator p {
+          margin: 0;
+          font-size: 14px;
+        }
+        
+        .risk-indicator.high-risk {
+          background-color: #fef2f2;
+          color: #b91c1c;
+        }
+        
+        .risk-indicator.safe {
+          background-color: #f0fdf4;
+          color: #15803d;
+        }
+        
+        .report-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 16px;
+          padding: 24px;
+        }
+        
+        .report-item {
+          padding: 16px;
+          background-color: #f8fafc;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .item-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: #64748b;
+          margin-bottom: 8px;
+        }
+        
+        .item-value {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 16px;
+          font-weight: 600;
+        }
+        
+        .url-value {
+          word-break: break-all;
+        }
+        
+        .valid {
+          color: #15803d;
+        }
+        
+        .invalid {
+          color: #b91c1c;
+        }
+        
+        .progress-container {
+          height: 8px;
+          background-color: #e2e8f0;
+          border-radius: 4px;
+          position: relative;
+          margin-top: 8px;
+          overflow: hidden;
+        }
+        
+        .progress-bar {
+          height: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          border-radius: 4px;
+          transition: width 0.5s ease;
+        }
+        
+        .progress-bar.critical-risk {
+          background-color: #dc2626;
+        }
+        
+        .progress-bar.high-risk {
+          background-color: #ea580c;
+        }
+        
+        .progress-bar.medium-risk {
+          background-color: #eab308;
+        }
+        
+        .progress-bar.low-risk {
+          background-color: #84cc16;
+        }
+        
+        .progress-bar.safe {
+          background-color: #10b981;
+        }
+        
+        .progress-text {
+          position: absolute;
+          right: 0;
+          top: 12px;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        
+        .warning-tag {
+          display: inline-block;
+          background-color: #fef3c7;
+          color: #b45309;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: 4px;
+          margin-left: 8px;
+        }
+        
+        .app-footer {
+          background-color: #f1f5f9;
+          padding: 16px;
+          text-align: center;
+          border-top: 1px solid #e2e8f0;
+        }
+        
+        .app-footer p {
+          margin: 0;
+          font-size: 14px;
+          color: #64748b;
+        }
+        
+        @media (max-width: 768px) {
+          .report-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .nav-menu button {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
         }
       `}</style>
     </div>
