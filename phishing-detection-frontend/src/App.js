@@ -329,7 +329,7 @@ function App() {
       </div>
 
       <footer className="app-footer">
-        <p>&copy; {new Date().getFullYear()} Phishing Detection System</p>
+        <p> {new Date().getFullYear()} Phishing Detection System</p>
       </footer>
 
       <style jsx>{`

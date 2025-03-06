@@ -11,8 +11,14 @@ with open("ml_model/email_vectorizer.pkl", "rb") as file:
 def predict_email(subject, sender_email, email_text):
     combined_text = subject + " " + sender_email + " " + email_text  # Combine all fields
     email_features = vectorizer.transform([combined_text])
-    prediction = model.predict(email_features)
-    return "Phishing" if prediction[0] == 1 else "Legitimate"
+    prob = model.predict_proba(email_features)
+    
+    phishing_probability = prob[0][1] * 100  # Get the probability for phishing (class 1)
+    risk_score = round(phishing_probability, 2)
+    prediction = True if prob[0][1] > 0.5 else False  # True means phishing, False means legitimate
+    
+    return prediction, risk_score
+
 
 #Load the Model 
 with open("ml_model/url_model.pkl", "rb") as file:

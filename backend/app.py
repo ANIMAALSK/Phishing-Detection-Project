@@ -28,10 +28,13 @@ async def analyze_email(data: dict):
     if not email_text:  # Only body is strictly required
         raise HTTPException(status_code=400, detail="Body is required")
 
-    prediction = predict_email(subject, sender, email_text)
+    prediction, phishing_risk_score = predict_email(subject, sender, email_text)
+
+    domain_valid = domain_exists(sender.split('@')[1])
+
     save_to_db(None, None, None, None, None,prediction, email_text)
 
-    return {"phishing": prediction}
+    return {"phishing": prediction,"phishing_risk_score": phishing_risk_score, "domain_valid": domain_valid}
 
 @app.post("/analyze-url/")
 async def analyze_url(data: dict):
