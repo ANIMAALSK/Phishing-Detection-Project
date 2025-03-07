@@ -32,8 +32,6 @@ async def analyze_email(data: dict):
 
     domain_valid = domain_exists(sender.split('@')[1])
 
-    save_to_db(None, None, None, None, None,prediction, email_text)
-
     return {"phishing": prediction,"phishing_risk_score": phishing_risk_score, "domain_valid": domain_valid}
 
 @app.post("/analyze-url/")
@@ -58,9 +56,8 @@ async def analyze_url(data: dict):
 
     # Step 3: Use ML model to predict phishing probability
     prediction, phishing_risk_score = predict_url(url)
-    save_to_db(None, None, None, None, None, prediction, url)
 
-    ssl_info = get_ssl_details(url)
+    ssl_info = get_ssl_details(url).get('valid',False)
 
     is_whois_registered, domain_age, err = get_domain_age(url)
 
@@ -82,22 +79,3 @@ async def analyze_url(data: dict):
             "whois_registered": is_whois_registered,
             "no_of_redirects": no_of_redirects,
         }
-
-
-
-#     #{
-#   "url": "http://phishing-example.com",
-#   "phishing": true,
-#    "phising_risk_score": 10,
-#   "typosquatting_score": 85,
-#   "suspicion_score": 90,
-#   "domain_valid": false,
-#   "ssl_valid": false,
-#   "domain_age": 10,
-#   "hosting_country": "Russia",
-#   "whois_registered": false
-# }
-
-#no of redirects - Done
-#page content analysis using beautiful soup
-#fake popups 
