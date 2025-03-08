@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { FaEnvelope, FaLink, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaShieldAlt, FaLock, FaInfoCircle } from "react-icons/fa";
+import CountryMap from "./components/CountryMap";
 
 function App() {
   const [email, setEmail] = useState("");
@@ -291,13 +292,6 @@ function App() {
                 </div>
               )}
               
-              {result.hosting_country && (
-                <div className="report-item">
-                  <span className="item-label">Hosting Country</span>
-                  <span className="item-value">{result.hosting_country}</span>
-                </div>
-              )}
-              
               {result.whois_registered !== undefined && (
                 <div className="report-item">
                   <span className="item-label">WHOIS Registered</span>
@@ -310,6 +304,14 @@ function App() {
                   </span>
                 </div>
               )}
+
+              {result.hosting_country && (
+                <div className="report-item">
+                  <span className="item-label">Hosting Country</span>
+                  <CountryMap country={result.hosting_country} />
+                </div>
+              )}
+              
               
               {result.blacklisted !== undefined && (
                 <div className="report-item">

@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from backend.model import predict_email, predict_url # Ensure these functions exist
-from backend.database import save_to_db  # Ensure this function exists
 from backend.utils import calculate_suspicion_score, calculate_typosquatting_score, domain_exists, url_exists, get_ssl_details, get_domain_age, get_hosting_country, count_redirects
 from fastapi.middleware.cors import CORSMiddleware
 
