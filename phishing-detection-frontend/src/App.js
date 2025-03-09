@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { FaEnvelope, FaLink, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaShieldAlt, FaLock, FaInfoCircle } from "react-icons/fa";
+import CountryMap from "./components/CountryMap";
 
 function App() {
   const [email, setEmail] = useState("");
@@ -214,8 +215,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.phishing_risk_score)}`}
                       style={{ width: `${result.phishing_risk_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.phishing_risk_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.phishing_risk_score}%</span>
                   </div>
                 </div>
               )}
@@ -227,8 +229,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.typosquatting_score)}`}
                       style={{ width: `${result.typosquatting_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.typosquatting_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.typosquatting_score}%</span>
                   </div>
                 </div>
               )}
@@ -247,8 +250,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.suspicion_score)}`}
                       style={{ width: `${result.suspicion_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.suspicion_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.suspicion_score}%</span>
                   </div>
                 </div>
               )}
@@ -291,13 +295,6 @@ function App() {
                 </div>
               )}
               
-              {result.hosting_country && (
-                <div className="report-item">
-                  <span className="item-label">Hosting Country</span>
-                  <span className="item-value">{result.hosting_country}</span>
-                </div>
-              )}
-              
               {result.whois_registered !== undefined && (
                 <div className="report-item">
                   <span className="item-label">WHOIS Registered</span>
@@ -310,17 +307,19 @@ function App() {
                   </span>
                 </div>
               )}
-              
-              {result.blacklisted !== undefined && (
+
+              {result.hosting_country && (
                 <div className="report-item">
-                  <span className="item-label">Blacklisted</span>
-                  <span className={`item-value ${result.blacklisted ? "invalid" : "valid"}`}>
-                    {result.blacklisted ? (
-                      <><FaTimesCircle /> Yes</>
-                    ) : (
-                      <><FaCheckCircle /> No</>
-                    )}
-                  </span>
+                  <span className="item-label">Hosting Country</span>
+                  <CountryMap country={result.hosting_country} />
+                </div>
+              )}
+              
+              
+              {result.time_taken !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">Time taken</span>
+                    <span className="item-value">{result.time_taken} seconds</span>
                 </div>
               )}
             </div>
@@ -608,7 +607,7 @@ function App() {
           border-radius: 4px;
           position: relative;
           margin-top: 8px;
-          overflow: hidden;
+          overflow: visible;
         }
         
         .progress-bar {
@@ -646,6 +645,29 @@ function App() {
           top: 12px;
           font-size: 14px;
           font-weight: 600;
+        }
+        .tooltip {
+          position: absolute;
+          top: -30px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #3b82f6;
+          color: white;
+          padding: 5px 8px;
+          font-size: 12px;
+          border-radius: 4px;
+          opacity: 0;
+          transition: opacity 0.3s ease-in-out;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+
+        .progress-bar:hover .tooltip {
+          opacity: 1;
+        }
+
+        .progress-container:hover .tooltip {
+          opacity: 1;
         }
         
         .warning-tag {
