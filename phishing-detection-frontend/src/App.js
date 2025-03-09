@@ -322,6 +322,13 @@ function App() {
                     <span className="item-value">{result.time_taken} seconds</span>
                 </div>
               )}
+                
+                {result.no_of_redirects !== undefined && (
+                <div className="report-item">
+                  <span className="item-label">No of Redirects</span>
+                    <span className="item-value">{result.no_of_redirects}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
