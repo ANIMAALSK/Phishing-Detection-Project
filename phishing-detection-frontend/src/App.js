@@ -316,16 +316,10 @@ function App() {
               )}
               
               
-              {result.blacklisted !== undefined && (
+              {result.time_taken !== undefined && (
                 <div className="report-item">
-                  <span className="item-label">Blacklisted</span>
-                  <span className={`item-value ${result.blacklisted ? "invalid" : "valid"}`}>
-                    {result.blacklisted ? (
-                      <><FaTimesCircle /> Yes</>
-                    ) : (
-                      <><FaCheckCircle /> No</>
-                    )}
-                  </span>
+                  <span className="item-label">Time taken</span>
+                    <span className="item-value">{result.time_taken} seconds</span>
                 </div>
               )}
             </div>
