@@ -215,8 +215,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.phishing_risk_score)}`}
                       style={{ width: `${result.phishing_risk_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.phishing_risk_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.phishing_risk_score}%</span>
                   </div>
                 </div>
               )}
@@ -228,8 +229,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.typosquatting_score)}`}
                       style={{ width: `${result.typosquatting_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.typosquatting_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.typosquatting_score}%</span>
                   </div>
                 </div>
               )}
@@ -248,8 +250,9 @@ function App() {
                     <div 
                       className={`progress-bar ${getRiskLevelClass(result.suspicion_score)}`}
                       style={{ width: `${result.suspicion_score}%` }}
-                    ></div>
-                    <span className="progress-text">{result.suspicion_score}%</span>
+                    >
+                    </div>
+                    <span className="tooltip">{result.suspicion_score}%</span>
                   </div>
                 </div>
               )}
@@ -610,7 +613,7 @@ function App() {
           border-radius: 4px;
           position: relative;
           margin-top: 8px;
-          overflow: hidden;
+          overflow: visible;
         }
         
         .progress-bar {
@@ -648,6 +651,29 @@ function App() {
           top: 12px;
           font-size: 14px;
           font-weight: 600;
+        }
+        .tooltip {
+          position: absolute;
+          top: -30px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #3b82f6;
+          color: white;
+          padding: 5px 8px;
+          font-size: 12px;
+          border-radius: 4px;
+          opacity: 0;
+          transition: opacity 0.3s ease-in-out;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+
+        .progress-bar:hover .tooltip {
+          opacity: 1;
+        }
+
+        .progress-container:hover .tooltip {
+          opacity: 1;
         }
         
         .warning-tag {
