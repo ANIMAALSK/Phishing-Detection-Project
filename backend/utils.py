@@ -164,8 +164,12 @@ def get_ssl_details(url):
     except (ssl.SSLError, socket.error) as e:
         return {"valid": False, "error": str(e)}
 
+from datetime import datetime
+from urllib.parse import urlparse
+import whois
+
 def get_domain_age(url):
-    """Fetch the domain's registration age in days and check WHOIS registration."""
+    """Fetch the domain's registration age in years, months, and days and check WHOIS registration."""
     parsed_url = urlparse(url)
     domain = parsed_url.netloc
     try:
@@ -175,15 +179,28 @@ def get_domain_age(url):
         if not domain_info.creation_date:
             return {"registered": False, "error": "Domain not found in WHOIS"}
 
-        # Extract creation date (it can be a list)
+        # Extract creation date (can be a list)
         creation_date = domain_info.creation_date
         if isinstance(creation_date, list):
-            creation_date = creation_date[0]  # Take the earliest creation date
+            creation_date = creation_date[0]  # Take the earliest date
 
-        # Calculate age in days
-        age_days = (datetime.utcnow() - creation_date).days
+        # Calculate age in total days
+        total_days = (datetime.utcnow() - creation_date).days
 
-        return True, age_days, ""
+        # Convert days into years, months, days
+        years = total_days // 365
+        remaining_days = total_days % 365
+        months = remaining_days // 30
+        days = remaining_days % 30
+
+        # Format the result string
+        age_string = (
+            f"{years} year{'s' if years != 1 else ''}, "
+            f"{months} month{'s' if months != 1 else ''}, "
+            f"and {days} day{'s' if days != 1 else ''}"
+        )
+
+        return True, age_string, ""
 
     except whois.UnknownTld:
         return False, None, "Unknown top-level domain (TLD)"
@@ -196,6 +213,7 @@ def get_domain_age(url):
 
     except Exception as e:
         return False, None, str(e)
+
 
 
 def get_hosting_country(url):

@@ -287,7 +287,7 @@ function App() {
                 <div className="report-item">
                   <span className="item-label">Domain Age</span>
                   <span className="item-value">
-                    {result.domain_age} days
+                    {result.domain_age}
                     {result.domain_age < 30 && (
                       <span className="warning-tag">New Domain</span>
                     )}
