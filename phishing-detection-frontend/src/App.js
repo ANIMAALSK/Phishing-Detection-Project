@@ -53,13 +53,13 @@ function App() {
     return "safe";
   };
 
-  const getRiskLevelText = (score) => {
-    if (score >= 80) return "Critical Risk";
-    if (score >= 60) return "High Risk";
-    if (score >= 40) return "Medium Risk";
-    if (score >= 20) return "Low Risk";
-    return "Safe";
-  };
+  // const getRiskLevelText = (score) => {
+  //   if (score >= 80) return "Critical Risk";
+  //   if (score >= 60) return "High Risk";
+  //   if (score >= 40) return "Medium Risk";
+  //   if (score >= 20) return "Low Risk";
+  //   return "Safe";
+  // };
 
   return (
     <div className="app-container">
